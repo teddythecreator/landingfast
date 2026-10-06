@@ -1,5 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+
+// Simple scroll animation hook
+function useScrollAnimation() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+}
 
 // Navigation Component
 function Navigation() {
@@ -12,10 +36,7 @@ function Navigation() {
   }, []);
 
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.8, delay: 0.5 }}
+    <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/5' : ''
       }`}
@@ -30,148 +51,84 @@ function Navigation() {
           </span>
         </div>
         <div className="hidden md:flex items-center gap-8">
-          <a href="#servicios" className="text-sm text-white/60 hover:text-white transition-colors line-animate pb-1">Servicios</a>
-          <a href="#proceso" className="text-sm text-white/60 hover:text-white transition-colors line-animate pb-1">Proceso</a>
-          <a href="#resultados" className="text-sm text-white/60 hover:text-white transition-colors line-animate pb-1">Resultados</a>
-          <a href="#contacto" className="btn-primary px-5 py-2 rounded-full text-sm font-medium text-white" style={{ background: 'linear-gradient(to right, #06b6d4, #9333ea)' }}>
+          <a href="#servicios" className="text-sm text-white/60 hover:text-white transition-colors">Servicios</a>
+          <a href="#proceso" className="text-sm text-white/60 hover:text-white transition-colors">Proceso</a>
+          <a href="#resultados" className="text-sm text-white/60 hover:text-white transition-colors">Resultados</a>
+          <a href="#contacto" className="px-5 py-2 rounded-full text-sm font-medium text-white" style={{ background: 'linear-gradient(to right, #06b6d4, #9333ea)' }}>
             Contactar
           </a>
         </div>
       </div>
-    </motion.nav>
-  );
-}
-
-// Hero Section
-function HeroSection() {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"]
-  });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 300]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
-
-  return (
-    <section ref={ref} className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0" style={{ background: '#0a0a0f' }}>
-        {/* Cinematic gradient background */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 20%, rgba(6,182,212,0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(147,51,234,0.15) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(6,182,212,0.05) 0%, transparent 70%)' }} />
-        <div className="absolute inset-0 grid-bg opacity-40" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[120px] animate-glow-pulse" style={{ background: 'rgba(6, 182, 212, 0.1)' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-[120px] animate-glow-pulse" style={{ background: 'rgba(147, 51, 234, 0.1)', animationDelay: '1.5s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[80px]" style={{ background: 'linear-gradient(135deg, rgba(6,182,212,0.05), rgba(147,51,234,0.05))' }} />
-      </div>
-
-      {/* Scan line effect */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-full h-[2px] animate-scan-line" style={{ background: 'linear-gradient(to right, transparent, rgba(0,245,255,0.2), transparent)' }} />
-      </div>
-
-      {/* Floating particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 rounded-full"
-            style={{
-              left: `${(i * 5) % 100}%`,
-              top: `${(i * 7 + 10) % 100}%`,
-              background: 'rgba(0, 245, 255, 0.4)',
-              animation: `particle-float ${5 + (i % 5) * 2}s ease-in-out infinite`,
-              animationDelay: `${i * 0.3}s`,
-              '--tx': `${((i % 3) - 1) * 100}px`,
-              '--ty': `${((i % 2) - 0.5) * 150}px`,
-            } as React.CSSProperties}
-          />
-        ))}
-      </div>
-
-      {/* Content */}
-      <motion.div style={{ y, opacity, scale }} className="relative z-10 text-center px-6 max-w-6xl">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="mb-6"
-        >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium tracking-wider uppercase" style={{ border: '1px solid rgba(6,182,212,0.3)', background: 'rgba(6,182,212,0.05)', color: '#00f5ff' }}>
-            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#00f5ff' }} />
-            El futuro de la inteligencia artificial
-          </span>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, delay: 1 }}
-          className="font-display text-5xl md:text-7xl lg:text-9xl font-bold tracking-tighter leading-[0.85] mb-8"
-        >
-          <span className="block text-white">TRANSFORMA</span>
-          <span className="block bg-clip-text text-transparent animate-gradient-shift" style={{ backgroundImage: 'linear-gradient(to right, #00f5ff, #3b82f6, #9333ea)' }}>
-            TU NEGOCIO
-          </span>
-          <span className="block text-white/80 text-3xl md:text-5xl lg:text-6xl mt-2 font-light tracking-tight">con IA</span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.4 }}
-          className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 font-light leading-relaxed"
-        >
-          Soluciones de inteligencia artificial que impulsan el crecimiento exponencial. 
-          Automatización, análisis predictivo y generación de contenido a otro nivel.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.7 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          <a href="#contacto" className="btn-primary px-8 py-4 rounded-full font-medium text-white text-sm tracking-wide hover:shadow-[0_0_40px_rgba(0,245,255,0.3)] transition-shadow" style={{ background: 'linear-gradient(to right, #06b6d4, #9333ea)' }}>
-            EMPEZAR AHORA
-          </a>
-          <a href="#servicios" className="px-8 py-4 rounded-full font-medium text-white/80 text-sm tracking-wide hover:border-white/40 hover:text-white transition-all border border-white/20">
-            EXPLORAR SERVICIOS
-          </a>
-        </motion.div>
-      </motion.div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2.5 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-      >
-        <span className="text-[10px] text-white/30 tracking-[0.3em] uppercase">Scroll</span>
-        <div className="w-[1px] h-12 relative overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.3), transparent)' }}>
-          <div className="absolute w-full h-4 animate-scroll-down" style={{ background: '#00f5ff' }} />
-        </div>
-      </motion.div>
-    </section>
+    </nav>
   );
 }
 
 // Animated Section Wrapper
 function AnimatedSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0, y: 80 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-      className={className}
+      className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} ${className}`}
     >
       {children}
-    </motion.div>
+    </div>
+  );
+}
+
+// Hero Section
+function HeroSection() {
+  return (
+    <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0" style={{ background: '#0a0a0f' }}>
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 20%, rgba(6,182,212,0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(147,51,234,0.15) 0%, transparent 50%)' }} />
+        <div className="absolute inset-0 grid-bg opacity-40" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[120px] animate-glow-pulse" style={{ background: 'rgba(6, 182, 212, 0.1)' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-[120px] animate-glow-pulse" style={{ background: 'rgba(147, 51, 234, 0.1)', animationDelay: '1.5s' }} />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 text-center px-6 max-w-6xl">
+        <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium tracking-wider uppercase" style={{ border: '1px solid rgba(6,182,212,0.3)', background: 'rgba(6,182,212,0.05)', color: '#00f5ff' }}>
+            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#00f5ff' }} />
+            El futuro de la inteligencia artificial
+          </span>
+        </div>
+
+        <h1 className="font-display text-5xl md:text-7xl lg:text-9xl font-bold tracking-tighter leading-[0.85] mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+          <span className="block text-white">TRANSFORMA</span>
+          <span className="block bg-clip-text text-transparent animate-gradient-shift" style={{ backgroundImage: 'linear-gradient(to right, #00f5ff, #3b82f6, #9333ea)' }}>
+            TU NEGOCIO
+          </span>
+          <span className="block text-white/80 text-3xl md:text-5xl lg:text-6xl mt-2 font-light tracking-tight">con IA</span>
+        </h1>
+
+        <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 font-light leading-relaxed animate-fade-in" style={{ animationDelay: '1.1s' }}>
+          Soluciones de inteligencia artificial que impulsan el crecimiento exponencial. 
+          Automatización, análisis predictivo y generación de contenido a otro nivel.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '1.4s' }}>
+          <a href="#contacto" className="px-8 py-4 rounded-full font-medium text-white text-sm tracking-wide hover:shadow-[0_0_40px_rgba(0,245,255,0.3)] transition-shadow" style={{ background: 'linear-gradient(to right, #06b6d4, #9333ea)' }}>
+            EMPEZAR AHORA
+          </a>
+          <a href="#servicios" className="px-8 py-4 rounded-full font-medium text-white/80 text-sm tracking-wide hover:border-white/40 hover:text-white transition-all border border-white/20">
+            EXPLORAR SERVICIOS
+          </a>
+        </div>
+      </div>
+
+      {/* Scroll indicator */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-fade-in" style={{ animationDelay: '2s' }}>
+        <span className="text-[10px] text-white/30 tracking-[0.3em] uppercase">Scroll</span>
+        <div className="w-[1px] h-12 relative overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.3), transparent)' }}>
+          <div className="absolute w-full h-4 animate-scroll-down" style={{ background: '#00f5ff' }} />
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -181,7 +138,6 @@ function VisionSection() {
     <section className="relative py-32 md:py-48 px-6 overflow-hidden">
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent)' }} />
-        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent)' }} />
       </div>
 
       <div className="max-w-7xl mx-auto">
@@ -201,7 +157,7 @@ function VisionSection() {
               <div className="flex gap-8">
                 <div>
                   <div className="font-display text-3xl font-bold" style={{ color: '#00f5ff' }}>500+</div>
-                  <div className="text-white/40 text-sm mt-1">Proyectos completados</div>
+                  <div className="text-white/40 text-sm mt-1">Proyectos</div>
                 </div>
                 <div>
                   <div className="font-display text-3xl font-bold" style={{ color: '#c084fc' }}>98%</div>
@@ -209,7 +165,7 @@ function VisionSection() {
                 </div>
                 <div>
                   <div className="font-display text-3xl font-bold" style={{ color: '#f472b6' }}>24/7</div>
-                  <div className="text-white/40 text-sm mt-1">Soporte activo</div>
+                  <div className="text-white/40 text-sm mt-1">Soporte</div>
                 </div>
               </div>
             </div>
@@ -217,48 +173,20 @@ function VisionSection() {
               <div className="relative aspect-square rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(6,182,212,0.1), transparent, rgba(147,51,234,0.1))' }} />
                 <div className="absolute inset-0 grid-bg opacity-60" />
-                {/* Neural network visualization */}
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400">
-                  {Array.from({ length: 15 }).map((_, i) => (
+                  {Array.from({ length: 12 }).map((_, i) => (
                     <circle
                       key={i}
-                      cx={80 + (i % 5) * 60 + Math.sin(i) * 20}
-                      cy={80 + Math.floor(i / 5) * 80 + Math.cos(i) * 20}
-                      r={3 + (i % 3)}
+                      cx={100 + (i % 4) * 70}
+                      cy={100 + Math.floor(i / 4) * 100}
+                      r={4}
                       fill={i % 2 === 0 ? '#00f5ff' : '#a855f7'}
                       opacity={0.6}
-                    >
-                      <animate attributeName="opacity" values="0.3;0.8;0.3" dur={`${2 + i * 0.3}s`} repeatCount="indefinite" />
-                    </circle>
+                    />
                   ))}
-                  {Array.from({ length: 20 }).map((_, i) => {
-                    const x1 = 80 + (i % 5) * 60 + Math.sin(i) * 20;
-                    const y1 = 80 + Math.floor(i / 5) * 80 + Math.cos(i) * 20;
-                    const x2 = 80 + ((i + 3) % 5) * 60 + Math.sin(i + 3) * 20;
-                    const y2 = 80 + Math.floor((i + 3) / 5) * 80 + Math.cos(i + 3) * 20;
-                    return (
-                      <line
-                        key={`line-${i}`}
-                        x1={x1} y1={y1} x2={x2} y2={y2}
-                        stroke="url(#lineGrad)"
-                        strokeWidth="0.5"
-                        opacity="0.3"
-                      />
-                    );
-                  })}
-                  <defs>
-                    <linearGradient id="lineGrad">
-                      <stop offset="0%" stopColor="#00f5ff" />
-                      <stop offset="100%" stopColor="#a855f7" />
-                    </linearGradient>
-                  </defs>
                 </svg>
-                {/* Center glow */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full blur-[60px] animate-glow-pulse" style={{ background: 'rgba(6,182,212,0.2)' }} />
               </div>
-              {/* Decorative elements */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 rounded-xl" style={{ border: '1px solid rgba(6,182,212,0.2)' }} />
-              <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-lg" style={{ border: '1px solid rgba(168,85,247,0.2)' }} />
             </div>
           </div>
         </AnimatedSection>
@@ -270,51 +198,16 @@ function VisionSection() {
 // Services Section
 function ServicesSection() {
   const services = [
-    {
-      icon: '🧠',
-      title: 'Automatización Inteligente',
-      description: 'Sistemas que aprenden y se adaptan. Automatiza procesos complejos con IA que entiende tu negocio.',
-      gradient: 'linear-gradient(135deg, rgba(6,182,212,0.2), rgba(37,99,235,0.2))',
-    },
-    {
-      icon: '📊',
-      title: 'Análisis Predictivo',
-      description: 'Anticipa tendencias, optimiza decisiones y descubre oportunidades ocultas con modelos predictivos avanzados.',
-      gradient: 'linear-gradient(135deg, rgba(168,85,247,0.2), rgba(219,39,119,0.2))',
-    },
-    {
-      icon: '💬',
-      title: 'NLP & Chatbots',
-      description: 'Interfaces conversacionales que entienden contexto, sentimiento e intención. Atención al cliente redefinida.',
-      gradient: 'linear-gradient(135deg, rgba(236,72,153,0.2), rgba(225,29,72,0.2))',
-    },
-    {
-      icon: '👁️',
-      title: 'Visión por Computadora',
-      description: 'Detección de objetos, reconocimiento facial y análisis de imágenes en tiempo real para tu industria.',
-      gradient: 'linear-gradient(135deg, rgba(34,197,94,0.2), rgba(16,185,129,0.2))',
-    },
-    {
-      icon: '⚡',
-      title: 'IA Generativa',
-      description: 'Contenido, código, diseño y más. Potencia tu creatividad con modelos generativos personalizados.',
-      gradient: 'linear-gradient(135deg, rgba(234,179,8,0.2), rgba(249,115,22,0.2))',
-    },
-    {
-      icon: '🔗',
-      title: 'Integración & APIs',
-      description: 'Conectamos la IA con tus sistemas existentes. APIs robustas, escalables y seguras.',
-      gradient: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))',
-    },
+    { icon: '🧠', title: 'Automatización Inteligente', description: 'Sistemas que aprenden y se adaptan. Automatiza procesos complejos con IA.' },
+    { icon: '📊', title: 'Análisis Predictivo', description: 'Anticipa tendencias y optimiza decisiones con modelos predictivos avanzados.' },
+    { icon: '💬', title: 'NLP & Chatbots', description: 'Interfaces conversacionales que entienden contexto y sentimiento.' },
+    { icon: '👁️', title: 'Visión por Computadora', description: 'Detección de objetos y análisis de imágenes en tiempo real.' },
+    { icon: '⚡', title: 'IA Generativa', description: 'Contenido, código y diseño con modelos generativos personalizados.' },
+    { icon: '🔗', title: 'Integración & APIs', description: 'Conectamos la IA con tus sistemas existentes de forma segura.' },
   ];
 
   return (
     <section id="servicios" className="relative py-32 md:py-48 px-6">
-      <div className="absolute inset-0">
-        <div className="absolute top-1/3 right-0 w-[500px] h-[500px] rounded-full blur-[150px]" style={{ background: 'rgba(147,51,234,0.05)' }} />
-        <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] rounded-full blur-[150px]" style={{ background: 'rgba(6,182,212,0.05)' }} />
-      </div>
-
       <div className="max-w-7xl mx-auto relative">
         <AnimatedSection className="text-center mb-20">
           <span className="text-xs font-medium tracking-[0.3em] uppercase mb-6 block" style={{ color: '#00f5ff' }}>Servicios</span>
@@ -331,32 +224,11 @@ function ServicesSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service, index) => (
             <AnimatedSection key={index}>
-              <motion.div
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-                className="service-card relative p-8 rounded-2xl group cursor-pointer"
-                style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(4px)' }}
-              >
-                <div 
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ background: service.gradient }}
-                />
-                <div className="relative z-10">
-                  <div className="text-4xl mb-6">{service.icon}</div>
-                  <h3 className="font-display text-xl font-semibold mb-3 text-white group-hover:text-white transition-colors">
-                    {service.title}
-                  </h3>
-                  <p className="text-white/40 text-sm leading-relaxed group-hover:text-white/60 transition-colors">
-                    {service.description}
-                  </p>
-                  <div className="mt-6 flex items-center gap-2 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#00f5ff' }}>
-                    <span>Explorar</span>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </div>
-                </div>
-              </motion.div>
+              <div className="service-card relative p-8 rounded-2xl group cursor-pointer" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <div className="text-4xl mb-6">{service.icon}</div>
+                <h3 className="font-display text-xl font-semibold mb-3 text-white">{service.title}</h3>
+                <p className="text-white/40 text-sm leading-relaxed">{service.description}</p>
+              </div>
             </AnimatedSection>
           ))}
         </div>
@@ -365,48 +237,13 @@ function ServicesSection() {
   );
 }
 
-// Full-width cinematic section
-function CinematicSection() {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
-  const textX = useTransform(scrollYProgress, [0, 1], [200, -200]);
-  const textX2 = useTransform(scrollYProgress, [0, 1], [-200, 200]);
-
-  return (
-    <section ref={ref} className="relative py-32 overflow-hidden">
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, #000, #12121a, #000)' }} />
-      
-      <div className="relative z-10">
-        <motion.div style={{ x: textX }} className="whitespace-nowrap mb-4">
-          <span className="font-display text-[8vw] font-bold tracking-tighter" style={{ color: 'rgba(255,255,255,0.03)' }}>
-            INTELIGENCIA ARTIFICIAL • MACHINE LEARNING • DEEP LEARNING • AUTOMATIZACIÓN • 
-          </span>
-        </motion.div>
-        <motion.div style={{ x: textX2 }} className="whitespace-nowrap mb-4">
-          <span className="font-display text-[8vw] font-bold tracking-tighter" style={{ color: 'rgba(255,255,255,0.03)' }}>
-            NLP • VISIÓN COMPUTADORA • IA GENERATIVA • MODELOS PREDICTIVOS • APIs • 
-          </span>
-        </motion.div>
-        <motion.div style={{ x: textX }} className="whitespace-nowrap">
-          <span className="font-display text-[8vw] font-bold tracking-tighter" style={{ color: 'rgba(255,255,255,0.03)' }}>
-            TRANSFORMACIÓN DIGITAL • DATA SCIENCE • NEURAL NETWORKS • INNOVACIÓN • 
-          </span>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
 // Process Section
 function ProcessSection() {
   const steps = [
-    { num: '01', title: 'Descubrimiento', desc: 'Analizamos tu negocio, identificamos oportunidades y definimos objetivos claros.' },
-    { num: '02', title: 'Diseño', desc: 'Arquitectamos la solución perfecta, seleccionamos modelos y diseñamos la experiencia.' },
-    { num: '03', title: 'Desarrollo', desc: 'Construimos, entrenamos y optimizamos con metodologías ágiles y estándares enterprise.' },
-    { num: '04', title: 'Despliegue', desc: 'Integramos en tu stack, monitoreamos rendimiento y escalamos según necesidad.' },
+    { num: '01', title: 'Descubrimiento', desc: 'Analizamos tu negocio y definimos objetivos claros.' },
+    { num: '02', title: 'Diseño', desc: 'Arquitectamos la solución perfecta para ti.' },
+    { num: '03', title: 'Desarrollo', desc: 'Construimos con metodologías ágiles y estándares enterprise.' },
+    { num: '04', title: 'Despliegue', desc: 'Integramos, monitoreamos y escalamos según necesidad.' },
   ];
 
   return (
@@ -425,16 +262,11 @@ function ProcessSection() {
           {steps.map((step, index) => (
             <AnimatedSection key={index}>
               <div className="relative group">
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-8 left-full w-full h-px z-0" style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.1), transparent)' }} />
-                )}
-                <div className="relative z-10">
-                  <div className="font-display text-5xl font-bold mb-4 transition-colors duration-500" style={{ color: 'rgba(255,255,255,0.05)' }}>
-                    {step.num}
-                  </div>
-                  <h3 className="font-display text-xl font-semibold mb-3">{step.title}</h3>
-                  <p className="text-white/40 text-sm leading-relaxed">{step.desc}</p>
+                <div className="font-display text-5xl font-bold mb-4" style={{ color: 'rgba(255,255,255,0.05)' }}>
+                  {step.num}
                 </div>
+                <h3 className="font-display text-xl font-semibold mb-3">{step.title}</h3>
+                <p className="text-white/40 text-sm leading-relaxed">{step.desc}</p>
               </div>
             </AnimatedSection>
           ))}
@@ -444,7 +276,7 @@ function ProcessSection() {
   );
 }
 
-// Results/Testimonials Section
+// Results Section
 function ResultsSection() {
   const stats = [
     { value: '10x', label: 'Más productividad', color: '#00f5ff' },
@@ -453,33 +285,10 @@ function ResultsSection() {
     { value: '<50ms', label: 'Tiempo de respuesta', color: '#4ade80' },
   ];
 
-  const testimonials = [
-    {
-      quote: "NEXUS AI transformó completamente nuestra operación. La automatización inteligente nos ahorró miles de horas al año.",
-      author: "María García",
-      role: "CTO, TechCorp",
-    },
-    {
-      quote: "El análisis predictivo nos permitió anticipar tendencias del mercado con una precisión increíble. ROI del 400%.",
-      author: "Carlos Rodríguez",
-      role: "CEO, DataFlow",
-    },
-    {
-      quote: "Su chatbot con NLP maneja el 80% de nuestras consultas sin intervención humana. La satisfacción subió un 60%.",
-      author: "Ana Martínez",
-      role: "Dir. Operaciones, RetailPro",
-    },
-  ];
-
   return (
     <section id="resultados" className="relative py-32 md:py-48 px-6 overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[100px]" style={{ background: 'linear-gradient(135deg, rgba(6,182,212,0.05), rgba(147,51,234,0.05))' }} />
-      </div>
-
       <div className="max-w-7xl mx-auto relative">
-        {/* Stats */}
-        <AnimatedSection className="mb-32">
+        <AnimatedSection>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -491,31 +300,6 @@ function ResultsSection() {
             ))}
           </div>
         </AnimatedSection>
-
-        {/* Testimonials */}
-        <AnimatedSection className="text-center mb-16">
-          <span className="text-xs font-medium tracking-[0.3em] uppercase mb-6 block" style={{ color: '#f472b6' }}>Testimonios</span>
-          <h2 className="font-display text-4xl md:text-6xl font-bold tracking-tight">
-            Lo que dicen
-            <br />
-            <span className="text-white/40">nuestros clientes</span>
-          </h2>
-        </AnimatedSection>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {testimonials.map((testimonial, index) => (
-            <AnimatedSection key={index}>
-              <div className="p-8 rounded-2xl h-full flex flex-col transition-colors" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div className="text-4xl mb-4" style={{ color: 'rgba(0,245,255,0.4)' }}>"</div>
-                <p className="text-white/60 text-sm leading-relaxed flex-grow mb-6">{testimonial.quote}</p>
-                <div>
-                  <div className="text-white font-medium text-sm">{testimonial.author}</div>
-                  <div className="text-white/30 text-xs mt-1">{testimonial.role}</div>
-                </div>
-              </div>
-            </AnimatedSection>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -525,20 +309,11 @@ function ResultsSection() {
 function CTASection() {
   return (
     <section id="contacto" className="relative py-32 md:py-48 px-6 overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 grid-bg opacity-30" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[120px] animate-glow-pulse" style={{ background: 'linear-gradient(135deg, rgba(6,182,212,0.1), rgba(147,51,234,0.1))' }} />
-      </div>
+      <div className="absolute inset-0 grid-bg opacity-30" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[120px]" style={{ background: 'linear-gradient(135deg, rgba(6,182,212,0.1), rgba(147,51,234,0.1))' }} />
 
       <div className="max-w-4xl mx-auto relative text-center">
         <AnimatedSection>
-          <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium tracking-wider uppercase" style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}>
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#4ade80' }} />
-              Disponibles para nuevos proyectos
-            </div>
-          </div>
-
           <h2 className="font-display text-4xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] mb-8">
             ¿Listo para
             <br />
@@ -548,35 +323,12 @@ function CTASection() {
           </h2>
 
           <p className="text-white/40 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light">
-            Agenda una consulta gratuita y descubre cómo la IA puede transformar tu negocio en semanas, no en años.
+            Agenda una consulta gratuita y descubre cómo la IA puede transformar tu negocio.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:hola@nexusai.com" className="btn-primary px-10 py-5 rounded-full font-medium text-white tracking-wide hover:shadow-[0_0_60px_rgba(0,245,255,0.3)] transition-all duration-300 text-sm" style={{ background: 'linear-gradient(to right, #06b6d4, #9333ea)' }}>
-              AGENDA TU CONSULTA GRATUITA
-            </a>
-          </div>
-
-          <div className="mt-16 flex flex-wrap justify-center gap-8 text-white/30 text-sm">
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4" style={{ color: '#00f5ff' }} fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              Sin compromiso
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4" style={{ color: '#00f5ff' }} fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              Respuesta en 24h
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4" style={{ color: '#00f5ff' }} fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              Propuesta personalizada
-            </div>
-          </div>
+          <a href="mailto:hola@nexusai.com" className="inline-block px-10 py-5 rounded-full font-medium text-white tracking-wide hover:shadow-[0_0_60px_rgba(0,245,255,0.3)] transition-all duration-300 text-sm" style={{ background: 'linear-gradient(to right, #06b6d4, #9333ea)' }}>
+            AGENDA TU CONSULTA GRATUITA
+          </a>
         </AnimatedSection>
       </div>
     </section>
@@ -588,48 +340,22 @@ function Footer() {
   return (
     <footer className="relative py-16 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
       <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-12 mb-16">
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00f5ff, #a855f7)' }}>
-                <span className="text-black font-bold text-sm">N</span>
-              </div>
-              <span className="font-display font-bold text-lg tracking-tight">
-                NEXUS<span style={{ color: '#00f5ff' }}>AI</span>
-              </span>
-            </div>
-            <p className="text-white/30 text-sm leading-relaxed max-w-sm">
-              Transformando negocios con inteligencia artificial de vanguardia. 
-              Del concepto a la producción, sin compromisos.
-            </p>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00f5ff, #a855f7)' }}>
+            <span className="text-black font-bold text-sm">N</span>
           </div>
-          <div>
-            <h4 className="text-white/60 font-medium text-sm mb-4">Servicios</h4>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">Automatización</a></li>
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">Análisis Predictivo</a></li>
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">NLP & Chatbots</a></li>
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">Visión por PC</a></li>
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">IA Generativa</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white/60 font-medium text-sm mb-4">Empresa</h4>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">Sobre nosotros</a></li>
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">Casos de éxito</a></li>
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">Blog</a></li>
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">Carreras</a></li>
-              <li><a href="#" className="text-white/30 text-sm hover:text-white/60 transition-colors">Contacto</a></li>
-            </ul>
-          </div>
+          <span className="font-display font-bold text-lg tracking-tight">
+            NEXUS<span style={{ color: '#00f5ff' }}>AI</span>
+          </span>
         </div>
+        <p className="text-white/30 text-sm leading-relaxed max-w-sm mb-8">
+          Transformando negocios con inteligencia artificial de vanguardia.
+        </p>
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <p className="text-white/20 text-xs">© 2026 NEXUS AI. Todos los derechos reservados.</p>
           <div className="flex gap-6">
             <a href="#" className="text-white/20 hover:text-white/60 transition-colors text-sm">Privacidad</a>
             <a href="#" className="text-white/20 hover:text-white/60 transition-colors text-sm">Términos</a>
-            <a href="#" className="text-white/20 hover:text-white/60 transition-colors text-sm">Cookies</a>
           </div>
         </div>
       </div>
@@ -644,7 +370,6 @@ export default function App() {
       <Navigation />
       <HeroSection />
       <VisionSection />
-      <CinematicSection />
       <ServicesSection />
       <ProcessSection />
       <ResultsSection />
