@@ -255,6 +255,36 @@ body {
   bottom: 0;
 }
 
+/* ===== CURTAIN REVEAL ===== */
+.curtain-left,
+.curtain-right {
+  position: fixed;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: #050508;
+  z-index: 9999;
+  will-change: transform;
+}
+
+.curtain-left {
+  left: 0;
+}
+
+.curtain-right {
+  right: 0;
+}
+
+.curtain-logo {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
 /* ===== GLOW EFFECTS ===== */
 .glow-cyan {
   box-shadow: 0 0 20px rgba(0, 245, 255, 0.3), 0 0 60px rgba(0, 245, 255, 0.1);

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { animate, createScope } from 'animejs';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { animate, createScope, createTimeline, createSpring } from 'animejs';
 import { stagger } from 'animejs/utils';
 
 // ===== SCROLL PROGRESS =====
@@ -22,6 +22,65 @@ function ScrollProgress() {
   return <div ref={barRef} className="scroll-progress" style={{ transform: 'scaleX(0)' }} />;
 }
 
+// ===== CURTAIN REVEAL =====
+function CurtainReveal({ onComplete }: { onComplete: () => void }) {
+  const leftRef = useRef<HTMLDivElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tl = createTimeline({
+      defaults: { ease: 'inOutQuart' },
+    });
+
+    tl.add(textRef.current!, {
+      opacity: { to: 1 },
+      scale: { from: 0.8, to: 1 },
+      duration: 800,
+    });
+
+    tl.add(leftRef.current!, {
+      translateX: { to: '-100%' },
+      duration: 1200,
+    }, '+=400');
+
+    tl.add(rightRef.current!, {
+      translateX: { to: '100%' },
+      duration: 1200,
+    }, '<');
+
+    tl.add('.main-content', {
+      opacity: { to: 1 },
+      duration: 600,
+    }, '-=600');
+
+    tl.then(() => onComplete());
+
+    return () => { /* cleanup */ };
+  }, [onComplete]);
+
+  return (
+    <div className="fixed inset-0 z-[9999] pointer-events-none">
+      <div ref={leftRef} className="absolute top-0 left-0 w-1/2 h-full" style={{ background: '#050508' }}>
+        <div className="absolute inset-0 grid-bg opacity-20" />
+      </div>
+      <div ref={rightRef} className="absolute top-0 right-0 w-1/2 h-full" style={{ background: '#050508' }}>
+        <div className="absolute inset-0 grid-bg opacity-20" />
+      </div>
+      <div ref={textRef} className="absolute inset-0 flex items-center justify-center opacity-0">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4" style={{ background: 'linear-gradient(135deg, #00f5ff, #a855f7)' }}>
+            <span className="text-black font-bold text-xl">N</span>
+          </div>
+          <div className="font-display text-2xl font-bold tracking-tight">
+            NEXUS<span style={{ color: '#00f5ff' }}>AI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ===== NAVIGATION =====
 function Navigation() {
   const [scrolled, setScrolled] = useState(false);
@@ -39,7 +98,7 @@ function Navigation() {
       opacity: { to: 1 },
       translateY: { to: 0 },
       duration: 1000,
-      delay: 500,
+      delay: 2800,
       ease: 'outExpo',
     });
   }, []);
@@ -115,36 +174,44 @@ function HeroSection() {
   const badgeRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    // Badge animation
     if (badgeRef.current) {
       animate(badgeRef.current, {
         opacity: { to: 1 },
         translateY: { to: 0 },
         duration: 1000,
-        delay: 300,
+        delay: 3000,
         ease: 'outExpo',
       });
     }
 
-    // CTA buttons
+    if (subtitleRef.current) {
+      animate(subtitleRef.current, {
+        opacity: { to: 1 },
+        translateY: { to: 0 },
+        duration: 1000,
+        delay: 3400,
+        ease: 'outExpo',
+      });
+    }
+
     if (ctaRef.current) {
       animate(ctaRef.current, {
         opacity: { to: 1 },
         translateY: { to: 0 },
         duration: 1000,
-        delay: 2000,
+        delay: 3700,
         ease: 'outExpo',
       });
     }
 
-    // Scroll indicator
     if (scrollRef.current) {
       animate(scrollRef.current, {
         opacity: { to: 1 },
         duration: 1000,
-        delay: 2500,
+        delay: 4200,
         ease: 'outExpo',
       });
     }
@@ -153,13 +220,13 @@ function HeroSection() {
     const handleScroll = () => {
       if (!sectionRef.current) return;
       const scrolled = window.scrollY;
-      const hero = sectionRef.current;
-      const content = hero.querySelector('.hero-content') as HTMLElement;
+      const content = sectionRef.current.querySelector('.hero-content') as HTMLElement;
       
       if (content && scrolled < window.innerHeight) {
         const progress = scrolled / window.innerHeight;
-        content.style.transform = `translateY(${scrolled * 0.3}px) scale(${1 - progress * 0.2})`;
-        content.style.opacity = `${1 - progress * 1.5}`;
+        content.style.transform = `translateY(${scrolled * 0.4}px) scale(${1 - progress * 0.15})`;
+        content.style.opacity = `${1 - progress * 1.8}`;
+        content.style.filter = `blur(${progress * 10}px)`;
       }
     };
 
@@ -169,26 +236,28 @@ function HeroSection() {
 
   return (
     <section ref={sectionRef} className="relative h-screen flex items-center justify-center overflow-hidden noise-texture">
-      {/* Background */}
+      {/* Background Video */}
       <div className="absolute inset-0" style={{ background: '#050508' }}>
-        <div 
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: 'url(https://image.qwenlm.ai/generated-images/a15f8cf7-cdbf-4312-8160-fcafa618f95b/_result.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 20%, rgba(6,182,212,0.12) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(147,51,234,0.12) 0%, transparent 50%)' }} />
-        <div className="absolute inset-0 grid-bg opacity-30" />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-25"
+        >
+          <source src="https://videos.pexels.com/video-files/27980029/27980029-hd_1920_1080_30fps.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 20%, rgba(6,182,212,0.1) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(147,51,234,0.1) 0%, transparent 50%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.8) 100%)' }} />
+        <div className="absolute inset-0 grid-bg opacity-20" />
         
         {/* Animated orbs */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-[150px] animate-glow-pulse" style={{ background: 'rgba(6, 182, 212, 0.08)' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[150px] animate-glow-pulse" style={{ background: 'rgba(147, 51, 234, 0.08)', animationDelay: '2s' }} />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-[150px] animate-glow-pulse" style={{ background: 'rgba(6, 182, 212, 0.06)' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[150px] animate-glow-pulse" style={{ background: 'rgba(147, 51, 234, 0.06)', animationDelay: '2s' }} />
         
         {/* Scan line */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-full h-[1px] animate-[scan-line_8s_linear_infinite]" style={{ background: 'linear-gradient(to right, transparent, rgba(0,245,255,0.15), transparent)' }} />
+          <div className="absolute w-full h-[1px] animate-[scan-line_8s_linear_infinite]" style={{ background: 'linear-gradient(to right, transparent, rgba(0,245,255,0.1), transparent)' }} />
         </div>
       </div>
 
@@ -202,16 +271,16 @@ function HeroSection() {
         </div>
 
         <h1 className="font-display text-5xl md:text-7xl lg:text-[10rem] font-bold tracking-tighter leading-[0.85] mb-8">
-          <SplitText text="TRANSFORMA" delay={800} />
+          <SplitText text="TRANSFORMA" delay={3000} />
           <div className="block bg-clip-text text-transparent animate-gradient-shift" style={{ backgroundImage: 'linear-gradient(to right, #00f5ff, #3b82f6, #9333ea)' }}>
-            <SplitText text="TU NEGOCIO" delay={1200} />
+            <SplitText text="TU NEGOCIO" delay={3400} />
           </div>
           <div className="block text-white/80 text-2xl md:text-4xl lg:text-6xl mt-4 font-light tracking-tight">
-            <SplitText text="con Inteligencia Artificial" delay={1600} />
+            <SplitText text="con Inteligencia Artificial" delay={3800} />
           </div>
         </h1>
 
-        <p className="text-lg md:text-xl text-white/40 max-w-2xl mx-auto mb-12 font-light leading-relaxed opacity-0 translate-y-8" style={{ animation: 'fadeUp 1s ease-out 2s forwards' }}>
+        <p ref={subtitleRef} className="text-lg md:text-xl text-white/40 max-w-2xl mx-auto mb-12 font-light leading-relaxed opacity-0 translate-y-8">
           Soluciones de inteligencia artificial que impulsan el crecimiento exponencial. 
           Automatización, análisis predictivo y generación de contenido a otro nivel.
         </p>
@@ -250,6 +319,66 @@ function MarqueeSection() {
             {word} <span style={{ color: 'rgba(0,245,255,0.1)' }}>•</span>
           </span>
         ))}
+      </div>
+    </section>
+  );
+}
+
+// ===== VIDEO SECTION =====
+function VideoSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!sectionRef.current) return;
+
+    const content = sectionRef.current.querySelector('.video-content');
+    if (!content) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            animate(content, {
+              opacity: { to: 1 },
+              scale: { from: 0.95, to: 1 },
+              duration: 1500,
+              ease: 'outExpo',
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(content);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="relative py-20 md:py-32 overflow-hidden">
+      <div className="video-content max-w-7xl mx-auto px-6 opacity-0">
+        <div className="relative rounded-2xl overflow-hidden aspect-video" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src="https://videos.pexels.com/video-files/28203344/28203344-hd_1920_1080_30fps.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)' }} />
+          <div className="absolute bottom-8 left-8 right-8">
+            <h3 className="font-display text-2xl md:text-4xl font-bold text-white mb-2">
+              El poder de la IA en acción
+            </h3>
+            <p className="text-white/60 text-sm md:text-base">
+              Visualización de redes neuronales procesando datos en tiempo real
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -329,37 +458,17 @@ function VisionSection() {
           </div>
           <div data-animate data-delay="400" className="relative opacity-0 translate-y-8">
             <div className="relative aspect-square rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(6,182,212,0.1), transparent, rgba(147,51,234,0.1))' }} />
-              <div className="absolute inset-0 grid-bg opacity-60" />
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <circle
-                    key={i}
-                    cx={100 + (i % 4) * 70}
-                    cy={100 + Math.floor(i / 4) * 100}
-                    r={4}
-                    fill={i % 2 === 0 ? '#00f5ff' : '#a855f7'}
-                    opacity={0.6}
-                  >
-                    <animate attributeName="opacity" values="0.3;0.8;0.3" dur={`${2 + i * 0.2}s`} repeatCount="indefinite" />
-                  </circle>
-                ))}
-                {Array.from({ length: 15 }).map((_, i) => {
-                  const x1 = 100 + (i % 4) * 70;
-                  const y1 = 100 + Math.floor(i / 4) * 100;
-                  const x2 = 100 + ((i + 1) % 4) * 70;
-                  const y2 = 100 + Math.floor((i + 1) / 4) * 100;
-                  return (
-                    <line key={`l-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="url(#grad)" strokeWidth="0.5" opacity="0.3" />
-                  );
-                })}
-                <defs>
-                  <linearGradient id="grad">
-                    <stop offset="0%" stopColor="#00f5ff" />
-                    <stop offset="100%" stopColor="#a855f7" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover opacity-60"
+              >
+                <source src="https://videos.pexels.com/video-files/34663579/34663579-hd_1920_1080_25fps.mp4" type="video/mp4" />
+              </video>
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(6,182,212,0.15), transparent, rgba(147,51,234,0.15))' }} />
+              <div className="absolute inset-0 grid-bg opacity-40" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full blur-[60px] animate-glow-pulse" style={{ background: 'rgba(6,182,212,0.2)' }} />
             </div>
           </div>
@@ -396,7 +505,7 @@ function ServicesSection() {
             animate(entry.target as Element, {
               opacity: { to: 1 },
               translateY: { to: 0 },
-              scale: { from: 0.95, to: 1 },
+              scale: { from: 0.9, to: 1 },
               duration: 1000,
               delay: index * 100,
               ease: 'outExpo',
@@ -689,18 +798,25 @@ function Footer() {
 
 // ===== MAIN APP =====
 export default function App() {
+  const [curtainDone, setCurtainDone] = useState(false);
+  const handleCurtainComplete = useCallback(() => setCurtainDone(true), []);
+
   return (
     <div className="min-h-screen text-white overflow-x-hidden" style={{ background: '#000' }}>
-      <ScrollProgress />
-      <Navigation />
-      <HeroSection />
-      <MarqueeSection />
-      <VisionSection />
-      <ServicesSection />
-      <ProcessSection />
-      <ResultsSection />
-      <CTASection />
-      <Footer />
+      {!curtainDone && <CurtainReveal onComplete={handleCurtainComplete} />}
+      <div className="main-content opacity-0">
+        <ScrollProgress />
+        <Navigation />
+        <HeroSection />
+        <MarqueeSection />
+        <VisionSection />
+        <VideoSection />
+        <ServicesSection />
+        <ProcessSection />
+        <ResultsSection />
+        <CTASection />
+        <Footer />
+      </div>
     </div>
   );
 }
